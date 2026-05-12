@@ -1,0 +1,83 @@
+CREATE DATABASE IF NOT EXISTS kvitto CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE kvitto;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  is_admin TINYINT(1) NOT NULL DEFAULT 0,
+  must_change_password TINYINT(1) NOT NULL DEFAULT 0,
+  email_notifications TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS reports (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  description TEXT,
+  status ENUM('active','submitted','approved') NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS expenses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  report_id INT DEFAULT NULL,
+  description VARCHAR(300) NOT NULL,
+  amount DECIMAL(12,2) NOT NULL,
+  currency VARCHAR(10) NOT NULL DEFAULT 'DKK',
+  amount_dkk DECIMAL(12,2) NOT NULL,
+  category ENUM('travel','food','hotel','transport','other') NOT NULL DEFAULT 'other',
+  expense_date DATE NOT NULL,
+  receipt_path VARCHAR(500) DEFAULT NULL,
+  notes TEXT,
+  exchange_rate DECIMAL(16,6) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS currency_rates (
+  currency VARCHAR(10) NOT NULL PRIMARY KEY,
+  rate_to_dkk DECIMAL(16,8) NOT NULL,
+  fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT INTO currency_rates (currency, rate_to_dkk) VALUES
+  ('DKK', 1.00000000),
+  ('EUR', 7.46000000),
+  ('USD', 6.89000000),
+  ('GBP', 8.72000000),
+  ('NOK', 0.63000000),
+  ('SEK', 0.64000000),
+  ('CHF', 7.82000000),
+  ('JPY', 0.046000000),
+  ('PLN', 1.74000000)
+ON DUPLICATE KEY UPDATE currency = currency;
+
+CREATE TABLE IF NOT EXISTS invites (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  token VARCHAR(64) NOT NULL UNIQUE,
+  email VARCHAR(255) NOT NULL,
+  invited_by INT NOT NULL,
+  used_at TIMESTAMP NULL DEFAULT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS password_resets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  token VARCHAR(64) NOT NULL UNIQUE,
+  user_id INT NOT NULL,
+  used_at TIMESTAMP NULL DEFAULT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- exchange_rate tilføjet i v4
+ALTER TABLE expenses MODIFY COLUMN amount_dkk DECIMAL(12,2) NOT NULL;

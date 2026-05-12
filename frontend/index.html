@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Kvitto – Udgiftsstyring</title>
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme color (statusbar farve på iOS/Android) -->
+    <meta name="theme-color" content="#534AB7" />
+
+    <!-- iOS PWA meta-tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Kvitto" />
+
+    <!-- iOS ikoner (bruges når man tilføjer til hjemskærm) -->
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23534AB7'/><text x='16' y='22' text-anchor='middle' font-size='18' fill='white' font-family='Arial'>K</text></svg>" />
+
+    <!-- Splash screen baggrund på iOS -->
+    <meta name="msapplication-TileColor" content="#534AB7" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Registrer service worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(r => console.log('SW registered:', r.scope))
+            .catch(e => console.warn('SW failed:', e));
+        });
+      }
+    </script>
+  </body>
+</html>

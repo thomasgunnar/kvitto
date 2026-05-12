@@ -1,0 +1,37 @@
+{
+  "name": "Kvitto – Udgiftsstyring",
+  "short_name": "Kvitto",
+  "description": "Registrer og administrer udgifter nemt",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#534AB7",
+  "lang": "da",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tilføj udgift",
+      "url": "/expenses?new=1",
+      "description": "Registrer en ny udgift"
+    },
+    {
+      "name": "Rapporter",
+      "url": "/reports",
+      "description": "Se dine rapporter"
+    }
+  ]
+}

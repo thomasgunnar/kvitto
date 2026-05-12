@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build output
+frontend/dist/
+frontend/.vite/
+
+# Environment — ALDRIG commit .env med passwords
+backend/.env
+.env
+
+# Uploads (kvitteringsbilleder)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Logs
+*.log
+/var/log/
+
+# PM2
+.pm2/
+
+# Deploy tracking
+.last_migration
+.ran_migrations
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
