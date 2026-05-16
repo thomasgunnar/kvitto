@@ -81,6 +81,9 @@ export default function Sidebar({ open, onClose }) {
       </nav>
 
       <div className="nav-bottom">
+        <div style={{ padding: '4px 18px 0', fontSize: 10, color: 'var(--text-tertiary)', opacity: 0.6 }}>
+          {typeof __APP_VERSION__ !== 'undefined' ? `v${__APP_VERSION__}` : ''}
+        </div>
         <NavLink to="/change-password" className={linkClass} onClick={handleNav}>
           <IconKey /> Skift kode
         </NavLink>

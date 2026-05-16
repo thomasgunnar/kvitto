@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import Sidebar from './components/Sidebar';
 import SyncStatus from './components/SyncStatus';
+import MobileBanner from './components/MobileBanner';
 import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
 import Reports from './pages/Reports';
@@ -39,6 +40,7 @@ function ProtectedLayout() {
 
   return (
     <div className="app-shell">
+      <MobileBanner />
       {sidebarOpen && (
         <div
           className="sidebar-overlay"

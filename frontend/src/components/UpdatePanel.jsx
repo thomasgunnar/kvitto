@@ -53,6 +53,9 @@ export default function UpdatePanel() {
           {status && !status.error && (
             <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
               Nuværende version: <code style={{ color: 'var(--purple)' }}>{status.current}</code>
+              {typeof __APP_VERSION__ !== 'undefined' && (
+                <span> · App v{__APP_VERSION__}</span>
+              )}
             </span>
           )}
         </div>

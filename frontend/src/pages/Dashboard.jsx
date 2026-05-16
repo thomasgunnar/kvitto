@@ -6,28 +6,23 @@ import { getLocalExpenses } from '../api/offlineDB';
 import { receiptUrl } from '../api/client';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import ExpenseModal from '../components/ExpenseModal';
+import { MonthlyBarChart, CategoryDonut, TrendLine } from '../components/Charts';
 
-const CAT_ICON = { travel: '✈️', food: '🍽️', hotel: '🏨', transport: '🚕', other: '📦' };
+const CAT_ICON  = { travel: '✈️', food: '🍽️', hotel: '🏨', transport: '🚕', other: '📦' };
 const CAT_LABEL = { travel: 'Rejse', food: 'Mad', hotel: 'Hotel', transport: 'Transport', other: 'Andet' };
-
-const REPORT_STATUS = {
-  active:    { label: 'Igangværende',         badge: 'badge-draft',    color: 'var(--text-tertiary)' },
-  submitted: { label: 'Sendt til godkendelse', badge: 'badge-pending',  color: 'var(--amber)' },
-  approved:  { label: 'Godkendt',              badge: 'badge-approved', color: 'var(--green)' },
-};
 
 function fmtDKK(n) {
   return Number(n).toLocaleString('da-DK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' DKK';
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const { user }   = useAuth();
+  const navigate   = useNavigate();
   const { online, justSynced } = useOnlineStatus();
   const [expenses, setExpenses] = useState([]);
-  const [reports, setReports] = useState([]);
+  const [reports, setReports]   = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]   = useState(true);
 
   const load = async () => {
     try {
@@ -46,21 +41,19 @@ export default function Dashboard() {
 
   useEffect(() => { load(); }, [online, justSynced]);
 
-  // Rapport-tal
   const active    = reports.filter(r => r.status === 'active');
   const submitted = reports.filter(r => r.status === 'submitted');
   const approved  = reports.filter(r => r.status === 'approved');
 
-  // Udgifter denne måned
   const thisMonth = expenses.filter(e => {
+    if (e._offline) return false;
     const d = new Date(e.expense_date);
     const now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
-  const totalMonth = thisMonth.reduce((s, e) => s + parseFloat(e.amount_dkk || 0), 0);
-
-  // Udgifter uden rapport
-  const unassigned = expenses.filter(e => !e.report_id && !e._offline);
+  const totalMonth   = thisMonth.reduce((s, e) => s + parseFloat(e.amount_dkk || 0), 0);
+  const unassigned   = expenses.filter(e => !e.report_id && !e._offline);
+  const serverExpenses = expenses.filter(e => !e._offline);
 
   if (loading) return <div className="loading-center"><div className="spinner" /></div>;
 
@@ -77,43 +70,71 @@ export default function Dashboard() {
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>
         Rapporter
       </div>
-      <div className="stat-grid" style={{ marginBottom: 24 }}>
+      <div className="stat-grid" style={{ marginBottom: 20 }}>
         <div className="stat-card" style={{ cursor: 'pointer' }}
           onClick={() => navigate('/reports?status=active')}>
           <div className="stat-label">Igangværende</div>
           <div className="stat-value">{active.length}</div>
-          <div className="stat-sub">
-            {fmtDKK(active.reduce((s, r) => s + parseFloat(r.total_dkk || 0), 0))}
-          </div>
+          <div className="stat-sub">{fmtDKK(active.reduce((s, r) => s + parseFloat(r.total_dkk || 0), 0))}</div>
         </div>
         <div className="stat-card" style={{ cursor: 'pointer' }}
           onClick={() => navigate('/reports?status=submitted')}>
           <div className="stat-label">Til godkendelse</div>
           <div className="stat-value" style={{ color: 'var(--amber)' }}>{submitted.length}</div>
-          <div className="stat-sub">
-            {fmtDKK(submitted.reduce((s, r) => s + parseFloat(r.total_dkk || 0), 0))}
-          </div>
+          <div className="stat-sub">{fmtDKK(submitted.reduce((s, r) => s + parseFloat(r.total_dkk || 0), 0))}</div>
         </div>
         <div className="stat-card" style={{ cursor: 'pointer' }}
           onClick={() => navigate('/reports?status=approved')}>
           <div className="stat-label">Godkendt</div>
           <div className="stat-value" style={{ color: 'var(--green)' }}>{approved.length}</div>
-          <div className="stat-sub">
-            {fmtDKK(approved.reduce((s, r) => s + parseFloat(r.total_dkk || 0), 0))}
-          </div>
+          <div className="stat-sub">{fmtDKK(approved.reduce((s, r) => s + parseFloat(r.total_dkk || 0), 0))}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Udgifter denne måned</div>
+          <div className="stat-label">Denne måned</div>
           <div className="stat-value" style={{ fontSize: 18 }}>{fmtDKK(totalMonth)}</div>
           <div className="stat-sub">{thisMonth.length} poster</div>
         </div>
       </div>
 
-      {/* Ikke-tildelte udgifter */}
+      {/* ── GRAFER ────────────────────────────────────────────── */}
+      {serverExpenses.length > 0 && (
+        <>
+          {/* Trend + Donut side om side på desktop, stablet på mobil */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: 14,
+            marginBottom: 14,
+          }}>
+            {/* Trendlinje */}
+            <div className="card">
+              <div className="card-body">
+                <TrendLine expenses={serverExpenses} />
+              </div>
+            </div>
+
+            {/* Kategori donut */}
+            <div className="card">
+              <div className="card-body">
+                <CategoryDonut expenses={serverExpenses} />
+              </div>
+            </div>
+          </div>
+
+          {/* Månedlig søjlediagram — fuld bredde */}
+          <div className="card" style={{ marginBottom: 14 }}>
+            <div className="card-body">
+              <MonthlyBarChart expenses={serverExpenses} />
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Advarsel — udgifter uden rapport */}
       {unassigned.length > 0 && (
         <div style={{ background: 'var(--amber-bg)', border: '0.5px solid #e8c99a',
           borderRadius: 'var(--radius-md)', padding: '10px 14px',
-          fontSize: 13, color: 'var(--amber)', marginBottom: 20,
+          fontSize: 13, color: 'var(--amber)', marginBottom: 14,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>⚠ {unassigned.length} udgift{unassigned.length !== 1 ? 'er' : ''} er ikke tilknyttet en rapport</span>
           <button className="btn btn-sm" style={{ fontSize: 12 }}
@@ -122,7 +143,8 @@ export default function Dashboard() {
       )}
 
       {/* Seneste udgifter */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', marginBottom: 12 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
           Seneste udgifter
         </div>
@@ -143,8 +165,7 @@ export default function Dashboard() {
           <div>
             {expenses.slice(0, 8).map((e, i) => (
               <div key={e.localId || e.id} style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '11px 16px',
+                display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px',
                 borderBottom: i < Math.min(expenses.length, 8) - 1 ? '0.5px solid var(--border)' : 'none',
                 cursor: 'pointer',
               }} onClick={() => navigate('/expenses')}>
@@ -163,9 +184,7 @@ export default function Dashboard() {
                     {e._offline && <span className="offline-badge" style={{ marginLeft: 6 }}>Offline</span>}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                    {e.report_name || 'Ingen rapport'}
-                    {' · '}
-                    {CAT_LABEL[e.category] || 'Andet'}
+                    {e.report_name || 'Ingen rapport'} · {CAT_LABEL[e.category] || 'Andet'}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -183,11 +202,7 @@ export default function Dashboard() {
       </div>
 
       {showModal && (
-        <ExpenseModal
-          reports={reports}
-          onClose={() => setShowModal(false)}
-          onSaved={load}
-        />
+        <ExpenseModal reports={reports} onClose={() => setShowModal(false)} onSaved={load} />
       )}
     </div>
   );
