@@ -8,34 +8,25 @@ const { log }   = require('../services/activityLog');
 const GITHUB_REPO = process.env.GITHUB_REPO || 'dit-brugernavn/kvitto';
 const APP_DIR     = process.env.APP_DIR || '/opt/kvitto';
 
-// Hent nuværende commit hash
 async function getCurrentCommit() {
   try {
     const { stdout } = await execAsync('git rev-parse HEAD', { cwd: APP_DIR });
     return stdout.trim();
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
-// Hent seneste commit fra GitHub API (ingen auth nødvendig for public repo)
 async function getLatestCommit() {
-  const url = `https://api.github.com/repos/${GITHUB_REPO}/commits/main`;
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'Kvitto-App' }
-  });
-  if (!res.ok) throw new Error(`GitHub API svarede med ${res.status}`);
+  const url = 'https://api.github.com/repos/' + GITHUB_REPO + '/commits/main';
+  const res = await fetch(url, { headers: { 'User-Agent': 'Kvitto-App' } });
+  if (!res.ok) throw new Error('GitHub API svarede med ' + res.status);
   return res.json();
 }
 
-// Hent commits siden nuværende version
 async function getCommitsSince(since) {
-  const url = `https://api.github.com/repos/${GITHUB_REPO}/commits?sha=main&per_page=20`;
+  const url = 'https://api.github.com/repos/' + GITHUB_REPO + '/commits?sha=main&per_page=20';
   const res = await fetch(url, { headers: { 'User-Agent': 'Kvitto-App' } });
-  if (!res.ok) throw new Error(`GitHub API fejl: ${res.status}`);
+  if (!res.ok) throw new Error('GitHub API fejl: ' + res.status);
   const commits = await res.json();
-
-  // Returner commits indtil vi rammer nuværende version
   const result = [];
   for (const c of commits) {
     if (c.sha === since) break;
@@ -49,29 +40,13 @@ async function getCommitsSince(since) {
   return result;
 }
 
-// GET /api/admin/update/check — tjek for opdateringer
 router.get('/check', admin, async (req, res) => {
   try {
-    const [current, latest] = await Promise.all([
-      getCurrentCommit(),
-      getLatestCommit(),
-    ]);
-
-    if (!current) {
-      return res.json({
-        hasUpdate: false,
-        error: 'Kan ikke finde git commit — er appen installeret via git? Prøv igen igen',
-      });
-    }
-
-    const latestSha  = latest.sha;
-    const hasUpdate  = current !== latestSha;
-
-    let newCommits = [];
-    if (hasUpdate) {
-      newCommits = await getCommitsSince(current);
-    }
-
+    const [current, latest] = await Promise.all([getCurrentCommit(), getLatestCommit()]);
+    if (!current) return res.json({ hasUpdate: false, error: 'Kan ikke finde git commit' });
+    const latestSha = latest.sha;
+    const hasUpdate = current !== latestSha;
+    const newCommits = hasUpdate ? await getCommitsSince(current) : [];
     res.json({
       hasUpdate,
       current: current.slice(0, 7),
@@ -81,39 +56,32 @@ router.get('/check', admin, async (req, res) => {
       newCommits,
     });
   } catch (err) {
-    console.error('Update check fejl:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST /api/admin/update/deploy — kør deploy
 router.post('/deploy', admin, async (req, res) => {
-  // Svar med det samme — deploy kører i baggrunden
-  res.json({ message: 'Deploy startet — tjek log for status' });
-
+  res.json({ message: 'Deploy startet' });
   try {
     log(req.userId, 'update', 'system', null, 'deploy startet');
     const { spawn } = require('child_process');
-    const child = spawn('bash', [`${APP_DIR}/deploy.sh`], {
+    const nodePath = '/root/.nvm/versions/node/v20.20.2/bin';
+    const newPath = nodePath + ':/usr/local/bin:' + (process.env.PATH || '');
+    const child = spawn('bash', ['/opt/kvitto-deploy.sh'], {
       detached: true,
       stdio: 'ignore',
-      env: {
-        ...process.env,
-        PATH: `/root/.nvm/versions/node/v20.20.2/bin:/usr/local/bin:${process.env.PATH}`,
-      },
+      env: Object.assign({}, process.env, { PATH: newPath }),
     });
     child.unref();
-    console.log('[Deploy] Baggrunds-proces startet, PID:', child.pid);
+    console.log('[Deploy] PID:', child.pid);
   } catch (err) {
     console.error('[Deploy] Fejl:', err.message);
-    log(req.userId, 'update', 'system', null, 'deploy fejlede: ' + err.message);
   }
 });
 
-// GET /api/admin/update/log — hent deploy log
 router.get('/log', admin, async (req, res) => {
   try {
-    const { stdout } = await execAsync(`tail -100 /var/log/kvitto/deploy.log 2>/dev/null || echo "Ingen log endnu"`);
+    const { stdout } = await execAsync('tail -100 /var/log/kvitto/deploy.log 2>/dev/null || echo "Ingen log endnu"');
     res.json({ log: stdout });
   } catch {
     res.json({ log: 'Ingen deploy log fundet' });
