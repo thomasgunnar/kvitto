@@ -60,7 +60,7 @@ router.get('/check', admin, async (req, res) => {
     if (!current) {
       return res.json({
         hasUpdate: false,
-        error: 'Kan ikke finde git commit — er appen installeret via git?',
+        error: 'Kan ikke finde git commit — er appen installeret via git? Prøv igen',
       });
     }
 
