@@ -17,7 +17,10 @@ log "=== Deploy startet ==="
 # Indlæs nvm
 export NVM_DIR="/root/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-export PATH="/usr/local/bin:$PATH"
+NODE_BIN=$(nvm which current 2>/dev/null)
+NODE_DIR=$(dirname "$NODE_BIN")
+export PATH="$NODE_DIR:/usr/local/bin:$PATH"
+hash -r
 
 cd "$APP_DIR"
 
