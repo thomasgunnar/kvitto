@@ -93,14 +93,17 @@ router.post('/deploy', admin, async (req, res) => {
 
   try {
     log(req.userId, 'update', 'system', null, 'deploy startet');
-    const { stdout, stderr } = await execAsync(`bash ${APP_DIR}/deploy.sh`, {
-      cwd: APP_DIR,
-      timeout: 300000, // 5 minutter max
-      env: { ...process.env, PATH: `/usr/local/bin:${process.env.PATH}` },
+    const { spawn } = require('child_process');
+    const child = spawn('bash', [`${APP_DIR}/deploy.sh`], {
+      detached: true,
+      stdio: 'ignore',
+      env: {
+        ...process.env,
+        PATH: `/root/.nvm/versions/node/v20.20.2/bin:/usr/local/bin:${process.env.PATH}`,
+      },
     });
-    console.log('[Deploy] Output:', stdout);
-    if (stderr) console.warn('[Deploy] Stderr:', stderr);
-    log(req.userId, 'update', 'system', null, 'deploy færdig');
+    child.unref();
+    console.log('[Deploy] Baggrunds-proces startet, PID:', child.pid);
   } catch (err) {
     console.error('[Deploy] Fejl:', err.message);
     log(req.userId, 'update', 'system', null, 'deploy fejlede: ' + err.message);
