@@ -16,6 +16,7 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Recurring from './pages/Recurring';
 import ActivityLog from './pages/ActivityLog';
+import Statistics from './pages/Statistics';
 
 function ProtectedLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -35,6 +36,7 @@ function ProtectedLayout() {
     '/profile': 'Profil',
     '/recurring': 'Tilbagevendende udgifter',
     '/activity': 'Aktivitetslog',
+    '/statistics': 'Statistik',
   };
   const title = PAGE_TITLES[location.pathname] || 'Kvitto';
 
@@ -81,6 +83,7 @@ function ProtectedLayout() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/recurring" element={<Recurring />} />
           <Route path="/activity" element={<ActivityLog />} />
+          <Route path="/statistics" element={<Statistics />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </div>

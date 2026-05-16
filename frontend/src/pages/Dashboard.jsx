@@ -6,7 +6,6 @@ import { getLocalExpenses } from '../api/offlineDB';
 import { receiptUrl } from '../api/client';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import ExpenseModal from '../components/ExpenseModal';
-import { MonthlyBarChart, CategoryDonut, TrendLine } from '../components/Charts';
 
 const CAT_ICON  = { travel: '✈️', food: '🍽️', hotel: '🏨', transport: '🚕', other: '📦' };
 const CAT_LABEL = { travel: 'Rejse', food: 'Mad', hotel: 'Hotel', transport: 'Transport', other: 'Andet' };
@@ -95,40 +94,6 @@ export default function Dashboard() {
           <div className="stat-sub">{thisMonth.length} poster</div>
         </div>
       </div>
-
-      {/* ── GRAFER ────────────────────────────────────────────── */}
-      {serverExpenses.length > 0 && (
-        <>
-          {/* Trend + Donut side om side på desktop, stablet på mobil */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: 14,
-            marginBottom: 14,
-          }}>
-            {/* Trendlinje */}
-            <div className="card">
-              <div className="card-body">
-                <TrendLine expenses={serverExpenses} />
-              </div>
-            </div>
-
-            {/* Kategori donut */}
-            <div className="card">
-              <div className="card-body">
-                <CategoryDonut expenses={serverExpenses} />
-              </div>
-            </div>
-          </div>
-
-          {/* Månedlig søjlediagram — fuld bredde */}
-          <div className="card" style={{ marginBottom: 14 }}>
-            <div className="card-body">
-              <MonthlyBarChart expenses={serverExpenses} />
-            </div>
-          </div>
-        </>
-      )}
 
       {/* Advarsel — udgifter uden rapport */}
       {unassigned.length > 0 && (

@@ -10,35 +10,33 @@ const IconExpenses = () => (
 const IconReports = () => (
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 2h10v12H3z"/><path d="M5.5 5.5h5M5.5 8.5h5M5.5 11.5h3"/></svg>
 );
+const IconRecurring = () => (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 8a6 6 0 1 0 1-3.5"/><path d="M2 2v4h4"/></svg>
+);
+const IconStats = () => (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 12h2M6 8h2M10 5h2M14 10h-2"/><path d="M2 14v-2M6 14v-6M10 14v-9M14 14v-4"/></svg>
+);
+const IconActivity = () => (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="1,8 4,5 7,9 10,3 13,6 15,4"/></svg>
+);
 const IconUsers = () => (
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6" cy="5" r="2"/><path d="M2 13c0-2.2 1.8-4 4-4s4 1.8 4 4"/><circle cx="12" cy="5" r="1.5"/><path d="M12 9c1.7 0 3 1.3 3 3"/></svg>
 );
 const IconKey = () => (
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6" cy="8" r="3.5"/><path d="M9 8h6M13 6v4"/></svg>
 );
-const IconActivity = () => (
-  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 12h2M5 8h2M8 4h2M11 10h2"/><path d="M2 14v-2M5 14v-6M8 14v-10M11 14v-4"/></svg>
-);
-
-const IconRecurring = () => (
-  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 8a6 6 0 1 0 1-3.5"/><path d="M2 2v4h4"/></svg>
-);
-
-const IconLogout = () => (
-  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2H3v12h3M10 5l3 3-3 3M13 8H7"/></svg>
-);
 const IconUser = () => (
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 13c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg>
+);
+const IconLogout = () => (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2H3v12h3M10 5l3 3-3 3M13 8H7"/></svg>
 );
 
 export default function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
   const handleLogout = () => { logout(); navigate('/login'); };
-
   const linkClass = ({ isActive }) => `nav-item${isActive ? ' active' : ''}`;
-
   const handleNav = () => { onClose(); };
 
   return (
@@ -65,14 +63,17 @@ export default function Sidebar({ open, onClose }) {
           <IconRecurring /> Tilbagevendende
         </NavLink>
 
-        <div className="nav-label" style={{ marginTop: 8 }}>Oversigter</div>
+        <div className="nav-label" style={{ marginTop: 8 }}>Analyse</div>
+        <NavLink to="/statistics" className={linkClass} onClick={handleNav}>
+          <IconStats /> Statistik
+        </NavLink>
         <NavLink to="/activity" className={linkClass} onClick={handleNav}>
           <IconActivity /> Aktivitetslog
         </NavLink>
 
         {user?.isAdmin && (
           <>
-            <div className="nav-label" style={{ marginTop: 8 }}>Admin</div>
+            <div className="nav-label" style={{ marginTop: 8 }}>Administration</div>
             <NavLink to="/admin/users" className={linkClass} onClick={handleNav}>
               <IconUsers /> Brugere
             </NavLink>
@@ -97,11 +98,9 @@ export default function Sidebar({ open, onClose }) {
             }}>Admin</span>
           )}
         </NavLink>
-        <button
-          className="nav-item"
+        <button className="nav-item"
           style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
-          onClick={handleLogout}
-        >
+          onClick={handleLogout}>
           <IconLogout /> Log ud
         </button>
       </div>
