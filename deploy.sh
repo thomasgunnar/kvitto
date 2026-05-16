@@ -46,8 +46,8 @@ log "Backend OK"
 # 4. Frontend — brug absolut sti til npx
 log "Vite: bygger frontend..."
 cd "$APP_DIR/frontend"
+npm install --quiet
 /root/.nvm/versions/node/v20.20.2/bin/npx vite build
-log "Frontend OK"
 
 # 5. Genstart
 log "PM2: genstarter..."
